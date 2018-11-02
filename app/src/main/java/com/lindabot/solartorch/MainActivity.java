@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
         final Context context = getApplicationContext();
         textView = (TextView) findViewById(R.id.sensorValue);
-        button = findViewById(R.id.torch);
 
         // Initialise camera torch
         cameraManager = (CameraManager) getSystemService(CAMERA_SERVICE);
