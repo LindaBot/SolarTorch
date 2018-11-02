@@ -29,6 +29,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor mAmbientLight;
     float lightSensorValue = 0;
     TextView textView;
+    CameraManager cameraManager;
+    String cameraID;
 
 
     @Override
@@ -39,31 +41,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         textView = (TextView) findViewById(R.id.sensorValue);
         button = findViewById(R.id.torch);
 
-        // Torch part
-        final CameraManager cameraManager = (CameraManager) getSystemService(CAMERA_SERVICE);
+        // Initialise camera torch
+        cameraManager = (CameraManager) getSystemService(CAMERA_SERVICE);
         boolean feature_camera_flash = getPackageManager().hasSystemFeature(getPackageManager().FEATURE_CAMERA_FLASH);
         boolean cameraAccess = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
         ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, 60);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try{
-                    String cameraID = cameraManager.getCameraIdList()[0];
-                    Log.d("Button", "Button pressed");
-                    if (button.isChecked()){
-                        cameraManager.setTorchMode(cameraID, true);
-                    }else{
-                        cameraManager.setTorchMode(cameraID, false);
-                    }
-                } catch (CameraAccessException e) {
-                    String error = e.toString();
-                    Toast toast  = Toast.makeText(context, error, Toast.LENGTH_SHORT);
-                    toast.show();
-                }
-            }
-        });
 
-        // Light sensor part
+        try{
+            cameraID = cameraManager.getCameraIdList()[0];
+        } catch (CameraAccessException e) {
+            String error = e.toString();
+            Toast toast  = Toast.makeText(context, error, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+
+
+        // Initialise light sensor part
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mAmbientLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
     }
@@ -86,7 +79,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             lightSensorValue = event.values[0];
             String valueString = Float.toString(lightSensorValue);
             textView.setText(valueString);
-            // updateString();
+            if (lightSensorValue > 500){
+                TorchOn();
+            } else {
+                TorchOff();
+            }
         }
     }
 
@@ -95,7 +92,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // Do nothing
     }
 
+    private void TorchOn(){
+        Log.d("Torch", "On");
+        try {
+            cameraManager.setTorchMode(cameraID, true);
+        } catch (Exception e){
+            Log.d("Error", e.toString());
+        }
+    }
 
-
-
+    private void TorchOff(){
+        try {
+            cameraManager.setTorchMode(cameraID, false);
+        } catch (Exception e){
+            // Do nothing
+        }
+    }
 }
